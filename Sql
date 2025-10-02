@@ -1,0 +1,69 @@
+import java.sql.*;
+
+public class JDBCDemoApp {
+    // Change these for your DB
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/testdb"; 
+    // For PostgreSQL: "jdbc:postgresql://localhost:5432/testdb"
+    private static final String USER = "root";       // your DB username
+    private static final String PASS = "password";   // your DB password
+
+    public static void main(String[] args) {
+        try {
+            // Load Driver (optional for newer JDBC but safe)
+            // For MySQL: com.mysql.cj.jdbc.Driver
+            // For PostgreSQL: org.postgresql.Driver
+            Class.forName("com.mysql.cj.jdbc.Driver");  
+
+            // 1. Establish Connection
+            Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
+            System.out.println("✅ Connected to Database");
+
+            // 2. Create Table (if not exists)
+            Statement stmt = conn.createStatement();
+            String createTableSQL = "CREATE TABLE IF NOT EXISTS students ("
+                                  + "id INT PRIMARY KEY AUTO_INCREMENT, "
+                                  + "name VARCHAR(100), "
+                                  + "age INT)";
+            stmt.executeUpdate(createTableSQL);
+            System.out.println("✅ Table ready");
+
+            // 3. INSERT (Create)
+            String insertSQL = "INSERT INTO students (name, age) VALUES (?, ?)";
+            PreparedStatement pstmt = conn.prepareStatement(insertSQL);
+            pstmt.setString(1, "Alice");
+            pstmt.setInt(2, 22);
+            pstmt.executeUpdate();
+            System.out.println("✅ Inserted record");
+
+            // 4. SELECT (Read)
+            String selectSQL = "SELECT * FROM students";
+            ResultSet rs = stmt.executeQuery(selectSQL);
+            System.out.println("✅ Records in DB:");
+            while (rs.next()) {
+                System.out.println(rs.getInt("id") + " | " + rs.getString("name") + " | " + rs.getInt("age"));
+            }
+
+            // 5. UPDATE
+            String updateSQL = "UPDATE students SET age=? WHERE name=?";
+            pstmt = conn.prepareStatement(updateSQL);
+            pstmt.setInt(1, 23);
+            pstmt.setString(2, "Alice");
+            pstmt.executeUpdate();
+            System.out.println("✅ Updated record");
+
+            // 6. DELETE
+            String deleteSQL = "DELETE FROM students WHERE name=?";
+            pstmt = conn.prepareStatement(deleteSQL);
+            pstmt.setString(1, "Alice");
+            pstmt.executeUpdate();
+            System.out.println("✅ Deleted record");
+
+            // Close connection
+            conn.close();
+            System.out.println("✅ Connection closed");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
